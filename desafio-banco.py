@@ -11,8 +11,7 @@ def menu():
     [nu]\tNovo usuário
     [q]\tSair
     => """
-    return input(textwrap.dedent(menu))
-  
+    return input(textwrap.dedent(menu)) 
   
 def depositar(saldo, valor, extrato, /): # passando parametros posicionais
     
@@ -50,36 +49,97 @@ def exibir_extrato(saldo, /, *, extrato):
         print("Não foram realizadas movimentações." if not extrato else extrato)
         print(f"\nSaldo: {saldo:.2f}")
         print("================================")
-    
-# Programa principal
-print("== Bem-vindo(a) ao Banco do Pobre! ==")
-saldo = 0
-limite = 500
-extrato = ""
-numero_saques = 0
-LIMITE_SAQUE = 5
 
-while True:
-    opcao = menu()
+def criar_usuario(usuarios):
+    cpf = input("Informe o CPF ( somente números): ")
+    usuario = filtrar_usuario(cpf, usuarios)
     
-    if opcao == "d":
-        print("== Depositar ==")
-        valor = float(input("Digite o valor do depósito: "))
+    if usuario:
+        print("\n@@@ CPF já cadastrado. @@@\n")
+        return
         
-        saldo, extrato = depositar(saldo, valor, extrato)
-        
-        
-    elif opcao == "s":
-        print("== Sacar ==")
-        valor = float(input("Digite o valor do saque: "))
-        
-    elif opcao == "e":
-        exibir_extrato(saldo, extrato=extrato)
-        
-    elif opcao == "s":
-        print("== Sair ==")
-        break # Sai do while True
+    nome = input("Informe o nome completo: ")
+    data_nascimento = input("Informe a data de nascimento (dd/mm/aaaa): ")
+    endereco = input("Informe o endereço( logradouro, nro - bairro - cidade/sigla estado): ")
     
-    else:
-        print("== Opcao invalida, por favor selecione novamente. ==")     
+    usuarios.append({"nome": nome, "cpf": cpf, "data_nascimento": data_nascimento, "endereco": endereco})
     
+    print("\n=== Usuário cadastrado com sucesso! ===\n")
+    
+def filtrar_usuario(cpf, usuarios):
+    usuarios_filtrados = [usuario for usuario in usuarios if usuario["cpf"] == cpf]
+    return usuarios_filtrados[0] if usuarios_filtrados else None
+        
+def criar_conta(agencia, numero_conta, usuarios):
+    
+    cpf = input("Informe o CPF ( somente números): ")
+    usuario = filtrar_usuario(cpf, usuarios)
+    
+    if usuario:
+        print("\n@@@ Conta criada com sucesso. @@@\n")
+        return {"agencia": agencia, "numero": numero_conta, "usuario": usuario}
+    
+    print("\n=== Usuario não encontrado! ===\n")
+
+def listar_contas(contas):
+    for conta in contas:
+        linha = f"""\
+            Agência:\t{conta['agencia']}
+            C/C:\t\t{conta['numero']}
+            Titular:\t{conta['usuario']['nome']}
+            """
+        print("=" * 100)
+        print(textwrap.dedent(linha))
+    
+def main():
+    
+    LIMITE_SAQUE = 5
+    AGENCIA = "0001"
+    
+    saldo = 0
+    limite = 500
+    extrato = ""
+    numero_saques = 0
+    numero_conta = 0
+    usuarios = []
+    contas = []
+    # Programa principal
+    print("\n\n\t\t== Bem-vindo(a) ao Banco do Pobre! ==")
+
+    while True:
+        
+        opcao = menu()
+        
+        if opcao == "d":
+            print("== Depositar ==")
+            valor = float(input("Digite o valor do depósito: "))
+            
+            saldo, extrato = depositar(saldo, valor, extrato)
+            
+        elif opcao == "s":
+            print("== Sacar ==")
+            valor = float(input("Digite o valor do saque: "))
+            saldo -= valor
+            
+        elif opcao == "e":
+            exibir_extrato(saldo, extrato=extrato)
+            
+        elif opcao == "q":
+            print("== Sair ==")
+            break # Sai do while True
+        
+        elif opcao == "nu":
+            print("== Novo usuário ==")
+            criar_usuario(usuarios)
+            
+        elif opcao == 'nc':
+            numero_conta = len(contas) + 1
+            conta = criar_conta(AGENCIA, numero_conta, usuarios)
+            
+        elif opcao == 'lc':
+            listar_contas(contas)
+            
+        else:
+            print("== Opcao invalida, por favor selecione novamente. ==")     
+        
+main()
